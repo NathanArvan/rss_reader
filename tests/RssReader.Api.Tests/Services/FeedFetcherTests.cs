@@ -52,6 +52,127 @@ public class FeedFetcherTests : IDisposable
         Assert.Contains(items, i => i.Guid == "guid-2" && i.Title == "Item Two");
     }
 
+    // ── deduplication ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task FetchAsync_does_not_create_duplicate_items_by_guid()
+    {
+        _handler.SetOk(TwoItemFeed);
+        var source = SeedSource();
+
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+        await _fetcher.FetchAsync(source, CancellationToken.None); // second fetch same feed
+
+        var count = await _db.Items.CountAsync(i => i.SourceId == source.Id);
+        Assert.Equal(2, count); // still 2, not 4
+    }
+
+    [Fact]
+    public async Task FetchAsync_does_not_create_duplicate_items_by_url_when_no_guid()
+    {
+        _handler.SetOk(NoGuidFeed);
+        var source = SeedSource();
+
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+
+        var items = await _db.Items.Where(i => i.SourceId == source.Id).ToListAsync();
+        Assert.Single(items);
+        Assert.Null(items[0].Guid);
+        Assert.Equal("https://example.com/no-guid-1", items[0].Url);
+    }
+
+    // ── conditional GET ───────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task FetchAsync_stores_etag_from_response()
+    {
+        _handler.SetOk(TwoItemFeed, etag: "\"abc123\"");
+        var source = SeedSource();
+
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+
+        Assert.Equal("\"abc123\"", source.ETag);
+    }
+
+    [Fact]
+    public async Task FetchAsync_sends_if_none_match_when_etag_is_stored()
+    {
+        var source = SeedSource();
+        source.ETag = "\"abc123\"";
+        await _db.SaveChangesAsync();
+
+        _handler.SetOk(TwoItemFeed, etag: "\"abc123\"");
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+
+        var lastRequest = _handler.LastRequest!;
+        Assert.True(lastRequest.Headers.Contains("If-None-Match"));
+        Assert.Equal("\"abc123\"", lastRequest.Headers.GetValues("If-None-Match").First());
+    }
+
+    [Fact]
+    public async Task FetchAsync_handles_304_not_modified()
+    {
+        var source = SeedSource();
+        source.ETag = "\"abc123\"";
+        await _db.SaveChangesAsync();
+
+        _handler.SetStatus(HttpStatusCode.NotModified);
+        var before = DateTime.UtcNow.AddSeconds(-1);
+
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+
+        Assert.NotNull(source.LastFetchedUtc);
+        Assert.True(source.LastFetchedUtc >= before);
+        Assert.Equal(0, await _db.Items.CountAsync(i => i.SourceId == source.Id));
+    }
+
+    // ── error handling ────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task FetchAsync_sets_LastError_on_network_failure()
+    {
+        var throwingFetcher = new FeedFetcher(
+            _db,
+            new HttpClient(new ThrowingHttpHandler("Connection refused")),
+            NullLogger<FeedFetcher>.Instance);
+        var source = SeedSource();
+
+        await throwingFetcher.FetchAsync(source, CancellationToken.None);
+
+        var updated = await _db.Sources.FindAsync(source.Id);
+        Assert.NotNull(updated!.LastError);
+        Assert.Contains("Connection refused", updated.LastError);
+        Assert.NotNull(updated.LastErrorUtc);
+    }
+
+    [Fact]
+    public async Task FetchAsync_sets_LastError_on_http_error_status()
+    {
+        _handler.SetStatus(HttpStatusCode.ServiceUnavailable);
+        var source = SeedSource();
+
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+
+        Assert.Equal("HTTP 503", source.LastError);
+        Assert.NotNull(source.LastErrorUtc);
+    }
+
+    [Fact]
+    public async Task FetchAsync_clears_LastError_after_successful_fetch()
+    {
+        var source = SeedSource();
+        source.LastError = "HTTP 503";
+        source.LastErrorUtc = DateTime.UtcNow.AddHours(-1);
+        await _db.SaveChangesAsync();
+
+        _handler.SetOk(TwoItemFeed);
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+
+        Assert.Null(source.LastError);
+        Assert.Null(source.LastErrorUtc);
+    }
+
     [Fact]
     public async Task FetchAsync_updates_title_from_feed_when_source_used_url_as_title()
     {
