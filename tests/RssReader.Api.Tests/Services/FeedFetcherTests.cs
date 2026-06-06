@@ -52,6 +52,34 @@ public class FeedFetcherTests : IDisposable
         Assert.Contains(items, i => i.Guid == "guid-2" && i.Title == "Item Two");
     }
 
+    [Fact]
+    public async Task FetchAsync_updates_title_from_feed_when_source_used_url_as_title()
+    {
+        _handler.SetOk(TwoItemFeed); // feed title is "Test Feed"
+        var source = SeedSource(feedUrl: "https://example.com/feed.xml");
+        // SeedSource sets Title = FeedUrl when no title supplied (mirrors POST endpoint behaviour)
+        Assert.Equal("https://example.com/feed.xml", source.Title);
+
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+
+        var updated = await _db.Sources.FindAsync(source.Id);
+        Assert.Equal("Test Feed", updated!.Title);
+    }
+
+    [Fact]
+    public async Task FetchAsync_sets_LastFetchedUtc_on_success()
+    {
+        _handler.SetOk(TwoItemFeed);
+        var source = SeedSource();
+        Assert.Null(source.LastFetchedUtc);
+
+        var before = DateTime.UtcNow.AddSeconds(-1);
+        await _fetcher.FetchAsync(source, CancellationToken.None);
+
+        Assert.NotNull(source.LastFetchedUtc);
+        Assert.True(source.LastFetchedUtc >= before);
+    }
+
     // ── fixtures ──────────────────────────────────────────────────────────────
 
     internal Source SeedSource(string? feedUrl = null, string? title = null)
