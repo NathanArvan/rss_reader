@@ -1,0 +1,105 @@
+Building an RSS reader is a great personal project that fits well with your .Net/Angular background. Here's how I'd think about it:
+
+## Architecture Overview
+
+The natural fit for you is an **Angular frontend + .Net backend API**. The backend handles fetching and parsing RSS feeds (since doing this directly from the browser runs into CORS issues), and Angular gives you a nice reactive UI for reading. You'd store feed subscriptions and read/unread state in a database.
+
+A simple stack would be:
+- **Angular** SPA for the UI
+- **ASP.Net Core Web API** for feed fetching and management
+- **SQLite or PostgreSQL** for persistence (SQLite is great for a personal project — zero infrastructure)
+- **Hosted somewhere you can reach from your tablet** (more on this below)
+
+---
+
+## Key Questions to Settle Before You Start
+
+**Where will it run?** This is the most important thing to figure out first. Your options are:
+
+- A **Raspberry Pi or old PC on your home network** — cheap, always-on, accessible over local WiFi (fine if you only read at home)
+- A **cheap VPS** (Hetzner, DigitalOcean, etc.) — accessible anywhere, ~$5-7/month
+- **Your own machine with a tunnel** like Tailscale or Cloudflare Tunnel — lets you expose your home machine securely without a VPS
+
+If you only use your tablet at home, local hosting is simplest. If you travel or want it accessible everywhere, a VPS or Tailscale setup is worth it.
+
+**Do you want offline reading?** Tablets lose connectivity. If you want to read on a plane, you'd need to think about service workers / PWA caching or local storage of article content.
+
+**How will you handle feed polling?** RSS feeds need to be fetched periodically. You'll want a background service in .Net (a `BackgroundService` / `IHostedService`) that polls your subscribed feeds on a schedule and stores the items. This is simpler than polling on-demand per request.
+
+**Do you want it to feel like a native app on your tablet?** If so, building it as a **PWA** (Progressive Web App) is the move — Angular supports this well with `@angular/pwa`. You can add it to your tablet's home screen and it behaves like an app.
+
+---
+
+## Rough Feature Scope for a V1
+
+It's easy to over-engineer this. A solid first version really only needs:
+
+- Add/remove feed URLs
+- Background polling and storing of feed items
+- A reading list view (unread items, newest first)
+- Mark as read (individually or all-at-a-time)
+- Tap to open the full article
+
+Everything else — folders, tagging, search, starred items — can come later once the core loop feels good.
+
+---
+
+## A Few .Net-Specific Tips
+
+The **`System.ServiceModel.Syndication`** namespace (`SyndicationFeed`) handles RSS and Atom parsing well enough for most feeds, though some feeds have quirky extensions. **`CodeHollow.FeedReader`** is a popular NuGet package that's more forgiving if you hit edge cases.
+
+For the background polling service, a `BackgroundService` with a `PeriodicTimer` (available since .Net 6) is clean and simple. Be respectful of feed servers — polling every 15-30 minutes per feed is reasonable.
+
+---
+
+The main thing I'd nail down before writing any code is the **hosting question**, since it shapes everything else (domain/SSL setup, whether you bother with a PWA, etc.). Once you know where it lives, the rest of the architecture falls into place pretty naturally.
+
+
+
+Good choice — Digital Ocean is straightforward and you're already familiar with it, so no new account/billing friction.
+
+## What This Means for Your Setup
+
+A basic **Droplet** (their term for a VPS) running Ubuntu is all you need. For a personal RSS reader, the smallest tier ($6/month, 1GB RAM) is plenty — .Net Core is reasonably lean and SQLite has essentially no overhead for one user.
+
+You'll want to pair it with:
+
+- **A domain name or subdomain** — you could use something like `rss.yourdomain.com` if you already own a domain. Digital Ocean also lets you manage DNS. You don't strictly *need* a custom domain, but using the raw IP is annoying and makes SSL harder.
+- **SSL/TLS via Let's Encrypt** — you'll want HTTPS, especially since you're logging in from outside your home. Certbot makes this pretty painless on Ubuntu.
+- **Nginx as a reverse proxy** — you run your .Net app on a local port (say 5000) and Nginx sits in front, handling HTTPS termination and forwarding traffic to it. This is the standard setup and Digital Ocean has good tutorials on exactly this configuration.
+
+## Deployment Workflow to Think About
+
+Since this is a personal project you'll be actively developing, it's worth thinking early about how you'll get updates onto the server. Your options range from simple to more involved:
+
+The simplest approach is just SSH-ing in and doing a manual `git pull` + `dotnet publish` + service restart. Tedious but zero setup. For a personal project this is often fine.
+
+A step up is a basic **GitHub Actions workflow** that builds and deploys on push to main. Digital Ocean also has their own App Platform, but that's overkill and more expensive for this use case — a plain Droplet with a deploy script is better here.
+
+## Security Basics Worth Doing Upfront
+
+Since it's internet-facing, a few things are worth doing before you expose it:
+
+- **Disable password SSH login**, use key-based auth only (DO sets this up by default if you add your key when creating the Droplet)
+- **Set up UFW** (Ubuntu's firewall) to only allow ports 22, 80, and 443
+- **Add authentication to your app** — even something simple like ASP.Net Core's built-in Identity with a single user account, or even just HTTP Basic Auth through Nginx if you want to keep it dead simple. You don't want an open RSS reader on the public internet.
+
+## The PWA Question Revisited
+
+With a VPS and HTTPS, building it as a PWA becomes very easy — HTTPS is actually a requirement for service workers, so you'll have that covered. This means you can add it to your tablet's home screen and get a near-native experience. Angular's PWA support (`ng add @angular/pwa`) does most of the heavy lifting. Worth doing even in V1 since it's low effort.
+
+## Suggested Order of Operations
+
+Before writing any application code, I'd suggest getting the infrastructure sorted first:
+
+1. Spin up the Droplet, configure SSH and UFW
+2. Point a domain/subdomain at it
+3. Install Nginx and get a Let's Encrypt cert
+4. Deploy a basic "hello world" .Net Core app through Nginx just to prove the pipeline works
+5. Then start building the actual application
+
+Getting that deployment pipeline working early saves a lot of headaches later when you're trying to figure out if a bug is in your code or your server config.
+
+Once you have that foundation, the application development is just normal .Net/Angular work, which you already know how to do.
+
+

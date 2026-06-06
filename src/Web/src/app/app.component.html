@@ -1,0 +1,20 @@
+<main class="shell">
+  <h1>Personal RSS Reader</h1>
+  <p class="tagline">Phase 1 skeleton — proving the stack end to end.</p>
+
+  <section class="status">
+    <h2>Backend status</h2>
+
+    @if (ping(); as p) {
+      <ul>
+        <li>API: <strong>{{ p.status }}</strong></li>
+        <li>Database connected: <strong>{{ p.dbConnected ? 'yes' : 'no' }}</strong></li>
+        <li>Server time (UTC): <code>{{ p.utc }}</code></li>
+      </ul>
+    } @else if (error()) {
+      <p class="error">Could not reach <code>/api/ping</code>: {{ error() }}</p>
+    } @else {
+      <p>Checking <code>/api/ping</code>…</p>
+    }
+  </section>
+</main>
