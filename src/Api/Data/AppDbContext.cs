@@ -1,15 +1,42 @@
 using Microsoft.EntityFrameworkCore;
+using RssReader.Api.Models;
 
 namespace RssReader.Api.Data;
 
 /// <summary>
-/// Application database context. No domain entities yet — feed/source schema
-/// arrives in Phase 1, Item 2. For now this exists to prove the EF Core + SQLite
-/// plumbing (connection, migrations) end-to-end.
+/// Application database context. Holds the feed/source schema introduced in
+/// Phase 1, Step 2.
 /// </summary>
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
+    }
+
+    public DbSet<Source> Sources => Set<Source>();
+    public DbSet<Item> Items => Set<Item>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Source>(entity =>
+        {
+            entity.HasIndex(s => s.FeedUrl).IsUnique();
+            entity.Property(s => s.FeedUrl).IsRequired();
+            entity.Property(s => s.Title).IsRequired();
+
+            entity.HasMany(s => s.Items)
+                .WithOne(i => i.Source)
+                .HasForeignKey(i => i.SourceId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Item>(entity =>
+        {
+            entity.Property(i => i.Url).IsRequired();
+            entity.Property(i => i.Title).IsRequired();
+
+            // Supports step-3 dedup lookups (find existing item by source + GUID).
+            entity.HasIndex(i => new { i.SourceId, i.Guid });
+        });
     }
 }

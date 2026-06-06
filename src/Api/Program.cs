@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RssReader.Api.Data;
+using RssReader.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,10 @@ app.MapGet("/api/ping", async (AppDbContext db) =>
         utc = DateTime.UtcNow
     });
 });
+
+// Feed source and item endpoints (Phase 1, Step 2).
+app.MapSourceEndpoints();
+app.MapItemEndpoints();
 
 // Serve the Angular PWA (single deployable). In production the built app lives in
 // wwwroot; client-side routes fall through to index.html.
