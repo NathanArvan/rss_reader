@@ -14,6 +14,13 @@ public static class ItemEndpoints
     {
         var group = routes.MapGroup("/api/items");
 
+        // Fetch a single item by id — used by the PWA's detail view on deep-link / refresh.
+        group.MapGet("/{id:int}", async (int id, AppDbContext db) =>
+        {
+            var item = await db.Items.FindAsync(id);
+            return item is null ? Results.NotFound() : Results.Ok(ItemResponse.From(item));
+        });
+
         // `read` defaults to true; pass ?read=false to mark an item unread again.
         group.MapPost("/{id:int}/read", async (int id, AppDbContext db, bool? read) =>
         {

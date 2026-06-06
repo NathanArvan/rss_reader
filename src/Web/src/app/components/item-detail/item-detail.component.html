@@ -1,0 +1,31 @@
+@if (item(); as it) {
+  <article class="detail">
+    <h1>{{ it.title }}</h1>
+
+    <p class="meta">
+      @if (it.author) {
+        <span>{{ it.author }}</span>
+      }
+      @if (it.publishedUtc) {
+        <span>{{ it.publishedUtc | date: 'medium' }}</span>
+      }
+    </p>
+
+    <div class="actions">
+      <a class="open" [href]="it.url" target="_blank" rel="noopener noreferrer">Open original ↗</a>
+      <button type="button" (click)="toggleRead()">
+        {{ it.isRead ? 'Mark unread' : 'Mark read' }}
+      </button>
+    </div>
+
+    @if (it.summary) {
+      <div class="summary" [innerHTML]="it.summary"></div>
+    } @else {
+      <p class="no-summary">No summary in the feed. Use “Open original” to read it.</p>
+    }
+  </article>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <p class="loading">Loading…</p>
+}

@@ -127,5 +127,28 @@ public class ItemEndpointsTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Get_item_by_id_returns_the_item()
+    {
+        var item = NewItem("Find me", new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        var sourceId = await SeedSourceWithItems(item);
+
+        var client = _factory.CreateClient();
+        var dto = await client.GetFromJsonAsync<ItemDto>($"/api/items/{item.Id}");
+
+        Assert.NotNull(dto);
+        Assert.Equal(item.Id, dto!.Id);
+        Assert.Equal(sourceId, dto.SourceId);
+        Assert.Equal("Find me", dto.Title);
+    }
+
+    [Fact]
+    public async Task Get_unknown_item_is_not_found()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync("/api/items/999999");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private sealed record ItemDto(int Id, int SourceId, string Url, string Title, bool IsRead);
 }

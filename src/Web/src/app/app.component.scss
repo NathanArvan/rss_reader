@@ -1,37 +1,43 @@
-.shell {
-  max-width: 36rem;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
+:host {
   font-family: system-ui, sans-serif;
   line-height: 1.5;
+  color: #1f2933;
 }
 
-h1 {
-  margin-bottom: 0.25rem;
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: #1f2933;
+  color: #fff;
 }
 
-.tagline {
-  color: #666;
-  margin-top: 0;
+.topnav .brand {
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
 }
 
-.status {
-  margin-top: 2rem;
-  padding: 1rem 1.25rem;
-  border: 1px solid #ddd;
-  border-radius: 0.5rem;
+.topnav .links {
+  display: flex;
+  gap: 1rem;
 }
 
-.status ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.topnav .links a {
+  color: #cbd2d9;
+  text-decoration: none;
+  padding: 0.4rem 0.25rem;
 }
 
-.status li + li {
-  margin-top: 0.25rem;
+.topnav .links a.active {
+  color: #fff;
+  border-bottom: 2px solid #fff;
 }
 
-.error {
-  color: #b00020;
+.shell {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
 }

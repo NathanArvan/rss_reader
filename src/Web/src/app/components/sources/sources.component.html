@@ -1,0 +1,39 @@
+<header class="page-head">
+  <h1>Sources</h1>
+</header>
+
+<form class="add-form" (ngSubmit)="add()">
+  <input
+    type="url"
+    name="feedUrl"
+    placeholder="https://example.com/feed.xml"
+    [ngModel]="feedUrl()"
+    (ngModelChange)="feedUrl.set($event)"
+    [disabled]="adding()"
+    required
+  />
+  <button type="submit" [disabled]="adding() || !feedUrl().trim()">
+    {{ adding() ? 'Adding…' : 'Add feed' }}
+  </button>
+</form>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (list(); as sources) {
+  @if (sources.length === 0) {
+    <p class="empty">No feeds yet. Add one above.</p>
+  } @else {
+    <ul class="sources">
+      @for (source of sources; track source.id) {
+        <li class="source">
+          <a class="source-link" [routerLink]="['/sources', source.id]">{{ source.title }}</a>
+          <button class="remove" type="button" (click)="remove(source)">Remove</button>
+        </li>
+      }
+    </ul>
+  }
+} @else {
+  <p class="loading">Loading…</p>
+}

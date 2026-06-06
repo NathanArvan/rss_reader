@@ -1,0 +1,7 @@
+@if (list(); as items) {
+  <app-item-list [items]="items" />
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <p class="loading">Loading…</p>
+}

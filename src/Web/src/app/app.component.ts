@@ -1,28 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-
-interface PingResponse {
-  status: string;
-  dbConnected: boolean;
-  utc: string;
-}
+import { Component } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
 })
-export class AppComponent implements OnInit {
-  private readonly http = inject(HttpClient);
-
-  readonly ping = signal<PingResponse | null>(null);
-  readonly error = signal<string | null>(null);
-
-  ngOnInit(): void {
-    this.http.get<PingResponse>('/api/ping').subscribe({
-      next: (res) => this.ping.set(res),
-      error: (err) => this.error.set(err.message ?? 'Request failed')
-    });
-  }
-}
+export class AppComponent {}
