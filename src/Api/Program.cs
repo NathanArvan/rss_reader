@@ -1,11 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using RssReader.Api.Data;
 using RssReader.Api.Endpoints;
+using RssReader.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddHttpClient<FeedFetcher>(c =>
+{
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("RssReader/1.0");
+    c.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddTransient<IFeedFetcher>(sp => sp.GetRequiredService<FeedFetcher>());
+builder.Services.AddHostedService<FeedFetchingService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
