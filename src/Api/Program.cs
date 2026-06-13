@@ -49,6 +49,7 @@ app.MapGet("/api/ping", async (AppDbContext db) =>
 // Feed source and item endpoints (Phase 1, Step 2).
 app.MapSourceEndpoints();
 app.MapItemEndpoints();
+app.MapSettingsEndpoints();
 
 // Serve the Angular PWA (single deployable). In production the built app lives in
 // wwwroot; client-side routes fall through to index.html.
