@@ -109,6 +109,29 @@ public static class SourceEndpoints
             return Results.Ok(items);
         });
 
+        // Bulk dismiss: sets all New items for this source to Dismissed.
+        // Kept items are intentionally left alone — the user explicitly saved those.
+        // No confirmation dialog; this is the design doc's mark-all-as-read repurposed.
+        group.MapPost("/{id:int}/items/dismiss-all", async (int id, AppDbContext db) =>
+        {
+            if (!await db.Sources.AnyAsync(s => s.Id == id))
+            {
+                return Results.NotFound();
+            }
+
+            var newItems = await db.Items
+                .Where(i => i.SourceId == id && i.TriageState == TriageState.New)
+                .ToListAsync();
+
+            foreach (var item in newItems)
+            {
+                item.TriageState = TriageState.Dismissed;
+            }
+
+            await db.SaveChangesAsync();
+            return Results.Ok(new { count = newItems.Count });
+        });
+
         return routes;
     }
 }
