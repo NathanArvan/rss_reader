@@ -1,10 +1,25 @@
 import { Routes } from '@angular/router';
+import { TriageState } from './models/api.models';
 
 export const routes: Routes = [
+  { path: '', redirectTo: 'inbox', pathMatch: 'full' },
   {
-    path: '',
+    path: 'inbox',
+    data: { channel: 'inbox', triage: [TriageState.New] },
     loadComponent: () =>
-      import('./components/all-items/all-items.component').then((m) => m.AllItemsComponent),
+      import('./features/feed/feed.component').then((m) => m.FeedComponent),
+  },
+  {
+    path: 'interested',
+    data: { channel: 'interested', triage: [TriageState.Kept] },
+    loadComponent: () =>
+      import('./features/feed/feed.component').then((m) => m.FeedComponent),
+  },
+  {
+    path: 'everything',
+    data: { channel: 'everything' },
+    loadComponent: () =>
+      import('./features/feed/feed.component').then((m) => m.FeedComponent),
   },
   {
     path: 'sources',
@@ -21,5 +36,5 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/item-detail/item-detail.component').then((m) => m.ItemDetailComponent),
   },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: 'inbox' },
 ];

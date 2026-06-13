@@ -4,10 +4,10 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { SourceItemsComponent } from './source-items.component';
 import { ItemsService } from '../../services/items.service';
-import { Item } from '../../models/api.models';
+import { Item, TriageState } from '../../models/api.models';
 
 function item(id: number): Item {
-  return { id, sourceId: 3, url: 'https://x', title: `Item ${id}`, fetchedUtc: '', isRead: false };
+  return { id, sourceId: 3, url: 'https://x', title: `Item ${id}`, fetchedUtc: '', isRead: false, triageState: TriageState.New };
 }
 
 describe('SourceItemsComponent', () => {
