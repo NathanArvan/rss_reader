@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
 
     public DbSet<Source> Sources => Set<Source>();
     public DbSet<Item> Items => Set<Item>();
+    public DbSet<AppSettings> AppSettings => Set<AppSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +38,14 @@ public class AppDbContext : DbContext
 
             // Supports step-3 dedup lookups (find existing item by source + GUID).
             entity.HasIndex(i => new { i.SourceId, i.Guid });
+
+            // Supports triage-filtered item query (GET /api/items?triage=...).
+            entity.HasIndex(i => new { i.TriageState, i.SourceId })
+                  .HasDatabaseName("IX_Items_TriageState_SourceId");
         });
+
+        // Single-row settings table; Id=1 row seeded here so migrations create it.
+        modelBuilder.Entity<AppSettings>()
+            .HasData(new AppSettings { Id = 1, LastOpenedUtc = null });
     }
 }
