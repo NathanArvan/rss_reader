@@ -1,0 +1,181 @@
+.page-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+}
+
+.bulk-dismiss {
+  flex-shrink: 0;
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #a93226;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.status {
+  color: #777;
+  padding: 0.5rem 0;
+
+  &.empty {
+    font-style: italic;
+  }
+}
+
+.error {
+  color: #c0392b;
+  padding: 0.5rem 0;
+}
+
+.items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.since-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+  color: #9aa5b1;
+  font-size: 0.8rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e4e7eb;
+  }
+}
+
+.item {
+  border-top: 1px solid #e4e7eb;
+
+  &:first-of-type {
+    border-top: none;
+  }
+
+  &.read .item-title {
+    font-weight: 400;
+    color: #616e7c;
+  }
+
+  &.dismissed {
+    opacity: 0.5;
+  }
+}
+
+.item-link {
+  display: block;
+  padding: 0.85rem 0;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    background: #f5f7fa;
+    outline: none;
+    border-radius: 4px;
+  }
+}
+
+.item-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.item-meta {
+  display: block;
+  margin-top: 0.2rem;
+  color: #7b8794;
+  font-size: 0.82rem;
+
+  > * + *::before {
+    content: '·';
+    margin: 0 0.35rem;
+  }
+}
+
+.item-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem 0 0.7rem;
+
+  button {
+    padding: 0.3rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    background: transparent;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+}
+
+.action-keep {
+  color: #1b6ca8;
+
+  &:hover {
+    background: #e8f1fb;
+  }
+}
+
+.action-dismiss {
+  color: #7b8794;
+
+  &:hover {
+    background: #f5f7fa;
+  }
+}
+
+.feed-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.load-older {
+  padding: 0.55rem 1.5rem;
+  border: 1px solid #c8d0d8;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #f5f7fa;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.end-marker {
+  color: #9aa5b1;
+  font-size: 0.85rem;
+  margin: 0;
+}

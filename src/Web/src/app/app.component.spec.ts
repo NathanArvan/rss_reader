@@ -15,13 +15,15 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render the nav with links to All items and Sources', () => {
+  it('should render the nav with links to the three channels and Sources', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const nav = fixture.nativeElement as HTMLElement;
     expect(nav.querySelector('.brand')?.textContent).toContain('RSS Reader');
     const linkText = Array.from(nav.querySelectorAll('.links a')).map((a) => a.textContent?.trim());
-    expect(linkText).toContain('All items');
+    expect(linkText).toContain('Inbox');
+    expect(linkText).toContain('Interested');
+    expect(linkText).toContain('Everything');
     expect(linkText).toContain('Sources');
   });
 });

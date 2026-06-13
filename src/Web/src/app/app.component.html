@@ -1,7 +1,9 @@
 <nav class="topnav">
-  <a class="brand" routerLink="/">RSS Reader</a>
+  <a class="brand" routerLink="/inbox">RSS Reader</a>
   <div class="links">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">All items</a>
+    <a routerLink="/inbox" routerLinkActive="active">Inbox</a>
+    <a routerLink="/interested" routerLinkActive="active">Interested</a>
+    <a routerLink="/everything" routerLinkActive="active">Everything</a>
     <a routerLink="/sources" routerLinkActive="active">Sources</a>
   </div>
 </nav>

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ItemListComponent } from './item-list.component';
-import { Item, ItemWithSource } from '../../models/api.models';
+import { Item, ItemWithSource, TriageState } from '../../models/api.models';
 
 function item(partial: Partial<Item> & { id: number }): Item {
   return {
@@ -10,6 +10,7 @@ function item(partial: Partial<Item> & { id: number }): Item {
     title: `Item ${partial.id}`,
     fetchedUtc: '',
     isRead: false,
+    triageState: TriageState.New,
     ...partial,
   };
 }

@@ -3,7 +3,7 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { ItemDetailComponent } from './item-detail.component';
 import { ItemsService } from '../../services/items.service';
-import { Item } from '../../models/api.models';
+import { Item, TriageState } from '../../models/api.models';
 
 function item(partial: Partial<Item> & { id: number }): Item {
   return {
@@ -12,6 +12,7 @@ function item(partial: Partial<Item> & { id: number }): Item {
     title: `Item ${partial.id}`,
     fetchedUtc: '',
     isRead: false,
+    triageState: TriageState.New,
     ...partial,
   };
 }

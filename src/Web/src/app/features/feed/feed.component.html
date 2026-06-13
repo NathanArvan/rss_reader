@@ -1,0 +1,64 @@
+<header class="page-head">
+  <h1>{{ channelTitle }}</h1>
+  @if (channel === 'inbox' && items().length > 0) {
+    <button
+      class="bulk-dismiss"
+      (click)="onBulkDismiss()"
+      [disabled]="bulkDismissing()"
+    >
+      {{ bulkDismissing() ? 'Dismissing…' : 'Dismiss all' }}
+    </button>
+  }
+</header>
+
+@if (loadError()) {
+  <p class="error">{{ loadError() }}</p>
+} @else if (loading() && items().length === 0) {
+  <p class="status">Loading…</p>
+} @else if (items().length === 0) {
+  <p class="status empty">{{ emptyMessage }}</p>
+} @else {
+  <ul class="items" role="list">
+    @for (item of items(); track item.id; let i = $index) {
+      @if (showDivider(i)) {
+        <li class="since-divider" aria-hidden="true"><span>Earlier</span></li>
+      }
+      <li class="item" [class.read]="item.isRead" [class.kept]="item.triageState === 1" [class.dismissed]="item.triageState === 2">
+        <a class="item-link" [routerLink]="['/items', item.id]">
+          <span class="item-title">{{ item.title }}</span>
+          <span class="item-meta">
+            @if (sourceTitle(item); as src) {
+              <span class="item-source">{{ src }}</span>
+            }
+            @if (item.author) {
+              <span class="item-author">{{ item.author }}</span>
+            }
+            @if (item.publishedUtc) {
+              <span class="item-date">{{ item.publishedUtc | date: 'mediumDate' }}</span>
+            }
+          </span>
+        </a>
+        @if (canKeep(item) || canDismiss(item)) {
+          <div class="item-actions" role="group" [attr.aria-label]="'Actions for ' + item.title">
+            @if (canKeep(item)) {
+              <button class="action-keep" (click)="onKeep(item)">Keep</button>
+            }
+            @if (canDismiss(item)) {
+              <button class="action-dismiss" (click)="onDismiss(item)">Dismiss</button>
+            }
+          </div>
+        }
+      </li>
+    }
+  </ul>
+
+  <div class="feed-footer">
+    @if (hasMore()) {
+      <button class="load-older" (click)="loadOlder()" [disabled]="loading()">
+        {{ loading() ? 'Loading…' : 'Load older items' }}
+      </button>
+    } @else {
+      <p class="end-marker">— end —</p>
+    }
+  </div>
+}
