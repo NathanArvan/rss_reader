@@ -31,4 +31,6 @@ public class Item
     public DateTime FetchedUtc { get; set; }
 
     public bool IsRead { get; set; }
+
+    public TriageState TriageState { get; set; } = TriageState.New; // [phase: 2]
 }
